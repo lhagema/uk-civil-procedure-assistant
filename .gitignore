@@ -64,4 +64,4 @@ Thumbs.db
 *.temp
 
 # CPR Data (large files, not part of MVP)
-cpr_data/ 
+cpr_data/ chroma_db/
