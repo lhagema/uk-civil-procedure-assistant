@@ -1,106 +1,108 @@
-# Legal AI Assistant - Civil Procedure Navigator
+# Legal AI Assistant
 
-A fast, modern MVP for navigating Civil Procedure Rules using AI assistance. This prototype demonstrates how AI can transform static legal rules into dynamic, personalized guidance.
+A FastAPI-based legal assistant that provides information about UK Civil Procedure Rules (CPR) using both keyword matching and Google Cloud Vertex AI integration.
 
 ## Features
 
-- **Fast, Modern UI**: Beautiful, responsive chat interface built with FastAPI and vanilla JavaScript
-- **Legal Knowledge Base**: Pre-loaded with key Civil Procedure Rules and Practice Directions
-- **Citation Support**: Automatic citation of relevant CPR rules and practice directions
-- **Example Questions**: Quick-start buttons for common procedural questions
-- **Mobile Responsive**: Works seamlessly on desktop and mobile devices
+- **LLM Integration**: Uses Google Cloud Vertex AI (PaLM 2) for intelligent legal responses
+- **Fallback System**: Keyword-based matching when GCP is not configured
+- **Web Interface**: Clean HTML interface for querying legal information
+- **API Endpoints**: RESTful API for programmatic access
 
-## Quick Start
+## Setup
 
-### Prerequisites
-- Python 3.8+
-- Virtual environment (recommended)
+### 1. Install Dependencies
 
-### Installation
-
-1. **Clone and setup environment:**
 ```bash
-python3 -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-2. **Run the application:**
+### 2. GCP Configuration (Optional but Recommended)
+
+To enable LLM capabilities, you need to set up Google Cloud Platform:
+
+1. **Create a GCP Project** (if you don't have one)
+2. **Enable Vertex AI API** in your GCP project
+3. **Create a Service Account** with Vertex AI permissions
+4. **Download the service account key** as a JSON file
+5. **Set Environment Variables**:
+
+```bash
+export GOOGLE_CLOUD_PROJECT="your-project-id"
+export GOOGLE_APPLICATION_CREDENTIALS="/path/to/your/service-account-key.json"
+```
+
+### 3. Run the Application
+
 ```bash
 python main.py
 ```
 
-3. **Open your browser:**
-Navigate to `http://localhost:8000`
+Or for development with auto-reload:
 
-## Usage
+```bash
+uvicorn main:app --reload
+```
 
-The application provides a chat interface where you can ask questions about civil procedure, such as:
+The application will be available at `http://localhost:8000`
 
-- "When do witness statements need to be exchanged?"
-- "How does the court allocate cases to a track?"
-- "What are the time limits for serving particulars of claim?"
-- "How do I make an application to strike out a statement of case?"
+## How It Works
 
-## Current Knowledge Base
+### With GCP Integration (Recommended)
+- Queries are processed by Google Cloud's PaLM 2 model
+- The LLM provides intelligent, contextual responses about UK CPR
+- Responses include relevant rule citations and practical guidance
 
-The MVP includes information on:
-- **Witness Statements**: Timing, exchange procedures, and consequences
-- **Track Allocation**: Small claims, fast track, intermediate track, and multi-track
-- **Particulars of Claim**: Service deadlines and extension procedures
-- **Strike Out Applications**: Grounds, procedures, and evidence requirements
+### Without GCP (Fallback)
+- Uses keyword-based matching against a predefined knowledge base
+- Covers common topics like witness statements, track allocation, etc.
+- Limited to predefined responses but still functional
 
-## Architecture
+## API Usage
 
-- **Backend**: FastAPI with async support for high performance
-- **Frontend**: Modern HTML/CSS/JavaScript with responsive design
-- **Knowledge Base**: Structured data with citations (easily expandable)
-- **API**: RESTful endpoints for query processing
+### Query Endpoint
+```
+POST /api/query
+Content-Type: application/x-www-form-urlencoded
 
-## Future Enhancements
+query=your legal question here
+```
 
-This MVP is designed to be easily enhanced with:
+### Response Format
+```json
+{
+  "success": true,
+  "answer": "Detailed legal response...",
+  "citations": ["CPR 32.4(1)", "CPR 32.10"],
+  "query": "original query"
+}
+```
 
-1. **GCP Vertex AI Integration**: 
-   - Embeddings for semantic search
-   - Large language models for more sophisticated responses
-   - Vector database for full CPR/PD search
+## Current Knowledge Base (Fallback Mode)
 
-2. **Advanced Features**:
-   - Follow-up question handling
-   - Visual flowcharts and timelines
-   - Direct links to official forms
-   - Multi-topic support
-
-3. **Deployment**:
-   - Cloud Run for serverless deployment
-   - Cloud Storage for document storage
-   - Cloud SQL for persistent data
+The fallback system covers:
+- Witness statements and exchange procedures
+- Track allocation (small claims, fast track, multi-track)
+- Particulars of claim deadlines
+- Strike out applications
 
 ## Development
 
-### Project Structure
-```
-├── main.py              # FastAPI application
-├── templates/
-│   └── index.html       # Frontend template
-├── static/              # Static assets (if needed)
-├── requirements.txt     # Python dependencies
-└── README.md           # This file
-```
+The application is built with:
+- **FastAPI**: Web framework
+- **Uvicorn**: ASGI server
+- **Jinja2**: Template engine
+- **Google Cloud AI Platform**: LLM integration
 
-### Adding New Knowledge
+## Troubleshooting
 
-To add new legal topics, edit the `LEGAL_KNOWLEDGE` dictionary in `main.py`:
+### GCP Issues
+- Ensure Vertex AI API is enabled
+- Check service account permissions
+- Verify environment variables are set correctly
 
-```python
-LEGAL_KNOWLEDGE = {
-    "your_topic": {
-        "answer": "Your detailed answer here...",
-        "citations": ["CPR X.Y", "Practice Direction X"]
-    }
-}
-```
+### Fallback Mode
+If GCP is not configured, the app will automatically use the keyword-based system and display a warning message.
 
 ## License
 

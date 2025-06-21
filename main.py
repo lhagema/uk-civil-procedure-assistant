@@ -6,6 +6,20 @@ import json
 import os
 import re
 
+# Import configuration
+try:
+    import config
+except ImportError:
+    pass  # Config file is optional
+
+# Import GCP integration
+try:
+    from gcp_integration import enhanced_legal_query
+    GCP_AVAILABLE = True
+except ImportError:
+    GCP_AVAILABLE = False
+    print("⚠️  GCP integration not available - using fallback keyword system")
+
 app = FastAPI(title="Legal AI Assistant", version="1.0.0")
 
 # Create templates directory and mount static files
@@ -14,7 +28,7 @@ os.makedirs("static", exist_ok=True)
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
-# Sample legal knowledge base (in a real app, this would come from GCP Vertex AI)
+# Sample legal knowledge base (fallback when GCP is not available)
 LEGAL_KNOWLEDGE = {
     "witness statements": {
         "answer": "There is no standard time limit in the CPR for witness statement exchange - the timing is set by specific court directions, usually made at the Case Management Conference. Under CPR 32.4(1), witness statements must be served within the time specified by the court, and CPR 32.4(2) allows the court to determine whether exchange should be simultaneous or sequential. All witness statements must be served on all parties (CPR 32.10), and crucially, if you fail to serve a witness statement within the court's deadline, that witness cannot give oral evidence unless the court gives permission (CPR 32.10(2)). Always seek specific directions from the court rather than assuming any default position, as timing varies case by case.",
@@ -39,7 +53,7 @@ LEGAL_KNOWLEDGE = {
 }
 
 def search_legal_knowledge(query):
-    """Smarter keyword-based search for legal information"""
+    """Smarter keyword-based search for legal information (fallback system)"""
     query_lower = query.lower()
     query_words = set(re.findall(r'\b\w+\b', query_lower))
 
@@ -74,7 +88,7 @@ def search_legal_knowledge(query):
             scores[key] = score
     
     if scores:
-        best_match = max(scores, key=scores.get)
+        best_match = max(scores.keys(), key=scores.get)
         return LEGAL_KNOWLEDGE[best_match]
         
     return None
@@ -85,7 +99,18 @@ async def home(request: Request):
 
 @app.post("/api/query")
 async def query_legal_assistant(query: str = Form(...)):
-    """API endpoint for legal queries"""
+    """API endpoint for legal queries with GCP LLM integration"""
+    
+    # Try GCP LLM first if available
+    if GCP_AVAILABLE:
+        try:
+            gcp_result = enhanced_legal_query(query)
+            if gcp_result["success"]:
+                return gcp_result
+        except Exception as e:
+            print(f"GCP query failed, falling back to keyword system: {e}")
+    
+    # Fallback to keyword-based system
     result = search_legal_knowledge(query)
     
     if result:
