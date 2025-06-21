@@ -65,3 +65,4 @@ Thumbs.db
 
 # CPR Data (large files, not part of MVP)
 cpr_data/ chroma_db/
+cpr_data/
